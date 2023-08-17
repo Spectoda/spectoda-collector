@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # check if running under root
-# if [ "$EUID" -ne 0 ]
-#   then echo "Please run as root"
-#   exit
-# fi
+if [ "$EUID" -ne 0 ]
+  then echo "Please run as root"
+  exit
+fi
 
 # ask user if he wants to update repo
 read -p "Do you want to update the repo? (y/n) " -n 1 -r
