@@ -20,8 +20,8 @@ echo
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
     sleep 1
-    npm i
-    ./build.sh
+    su gateway -c 'npm i'
+    su gateway -c './build.sh'
 fi
 
 echo "Installing systemd service and enabling it..."
@@ -37,8 +37,7 @@ After=network.target
 User=gateway
 Group=gateway
 WorkingDirectory=/home/gateway/spectoda-collector/build/
-
-ExecStart=node src/main.js
+ExecStart=/bin/bash -i -c 'node src/main.js'
 Restart=on-failure
 RestartSec=5s
 
