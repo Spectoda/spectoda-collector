@@ -1,0 +1,31 @@
+version: '3'
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.30.3
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    ports:
+      - 9090:9090
+    restart: always
+  
+  # you need to have spectoda-node running separately
+  ## I haven't figured out how to run spectoda-node directly in docker. But I think it's ok
+  client:
+    image: node:18-alpine
+    volumes:
+      - ./:/app
+    ports: 
+      - 8080:8080
+    working_dir: /app
+    command: npm start
+    restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+
+volumes:
+  prometheus_data:

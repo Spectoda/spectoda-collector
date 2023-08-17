@@ -1,0 +1,7 @@
+global:
+  scrape_interval: 1s
+
+scrape_configs:
+  - job_name: 'spectodacollector'
+    static_configs:
+      - targets: ['spectodacollector:8080']  # Replace with the actual address and port of your target application
