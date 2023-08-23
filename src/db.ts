@@ -2,7 +2,7 @@
 import { drizzle, BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 
 import Database from "better-sqlite3";
-import { networkEventHistoryTable, networkStatsTable } from "./schema";
+import { networkEventHistoryTable, networkStatsAggregatedTable, networkStatsTable } from "./schema";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { inArray } from "drizzle-orm";
 import { ownerKey, ownerSignature } from "./variables";
@@ -29,12 +29,12 @@ async function sync() {
     }
   }
 
-  const stats = await db.select().from(networkStatsTable).limit(100).all();
+  const stats = await db.select().from(networkStatsAggregatedTable).limit(100).all();
   if (stats.length > 0) {
     const statsIds = stats.map(v => v.id);
     try {
       await postStatsToCloud(stats);
-      db.delete(networkStatsTable).where(inArray(networkStatsTable.id, statsIds)).run();
+      db.delete(networkStatsAggregatedTable).where(inArray(networkStatsAggregatedTable.id, statsIds)).run();
     } catch (err) {
       console.error(err);
     }

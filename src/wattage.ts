@@ -4,6 +4,9 @@ interface BrightnessWattPair {
 }
 
 export function getEstimatedWatt(brightness: number, data: BrightnessWattPair[]): number | null {
+  if (!data || data.length === 0) {
+    return undefined;
+  }
   // Ensure data is sorted by brightness in ascending order
   data.sort((a, b) => a.brightness - b.brightness);
 

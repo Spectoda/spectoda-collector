@@ -3,8 +3,8 @@ import * as prometheus from "prom-client";
 import EventSource from "eventsource";
 import express from "express";
 import { db } from "./db";
-import { networkEventHistoryTable, networkStatsTable, networkTable } from "./schema";
-import { eq, ne } from "drizzle-orm";
+import { networkEventHistoryTable, networkStatsAggregatedTable, networkStatsTable, networkTable } from "./schema";
+import { eq, ne, sql } from "drizzle-orm";
 import { ownerSignature, ownerKey, setOwner } from "./variables";
 import { fetchAndSaveNetworkData, fetchNetworkData, getNetworkData, keyedThrottle, saveNetworkDataLocally } from "./utils";
 import { getEstimatedWatt } from "./wattage";
@@ -145,8 +145,37 @@ app.get("/metrics", async (req, res) => {
   }
 });
 
+async function aggregateNetworkStats() {
+  try {
+    // select all network stats that are not yet aggregated
+    const aggregatedNetworkStats = await db
+      .select({
+        count: sql<number>`count(${networkStatsTable.id})`,
+        segId: networkStatsTable.segId,
+        watt: sql<number>`avg(${networkStatsTable.watt})`,
+        timestamp_utc: sql<number>`max(${networkStatsTable.timestamp_utc})`,
+        brightness: sql<number>`avg(${networkStatsTable.brightness})`,
+      })
+      .from(networkStatsTable)
+      .groupBy(({ segId }) => segId)
+      .all();
+
+    if (aggregatedNetworkStats.length >= 1) {
+      await db
+        .insert(networkStatsAggregatedTable)
+        .values(aggregatedNetworkStats.map(v => ({ ...v, timestamp_utc: new Date(v.timestamp_utc * 1000) })))
+        .run();
+      await db.delete(networkStatsTable).run();
+    }
+  } catch (error) {
+    console.error("Error while adding calculated network stats", error);
+  }
+}
+
 async function addCurrentNetworkStats() {
   // get devices from firebase
+  // this function will run every 15 seconds and scrape latest variable data /fetchVariableValue and save it to db
+  // every 5 minutes addCalculatedNetworkStats will run and calculate the average brightness and wattage for each device and save it to db
 
   try {
     let data = [];
@@ -155,27 +184,22 @@ async function addCurrentNetworkStats() {
 
     if (network) {
       const devices = network.devices;
-      console.log("Calculating power consumption from these devices", { devices });
+      // use fetchVariables and calculate powerconsumtion into data array
+      const variables = devices.map(device => ({ name: "lightlevel", segId: device.id }));
 
-      const fetchData = async device => {
-        const brightness = process.env.FAKE_DATA == "true" ? Math.random() * 100 : await fetchVariableValue("lightlevel", device.id);
+      const variablesValues = await fetchVariablesValues(variables);
 
-        const watt = device?.powerConsumption ? getEstimatedWatt(brightness, device?.powerConsumption) : null;
+      data = variablesValues.data.map(({ segId, value }, index) => ({
+        segId,
+        timestamp_utc: new Date(),
+        brightness: value?.value,
+        watt: getEstimatedWatt(value?.value, network.devices[index].powerConsumption),
+      }));
 
-        return {
-          segId: device.id,
-          timestamp_utc: new Date(),
-          brightness,
-          watt,
-        };
-      };
-
-      data = await Promise.all(devices.map(fetchData));
-    }
-
-    // insert into db
-    if (data.length >= 1) {
-      db.insert(networkStatsTable).values(data).run();
+      // insert into db
+      if (data.length >= 1) {
+        db.insert(networkStatsTable).values(data).run();
+      }
     }
   } catch (error) {
     console.error("Error while adding current network stats", error);
@@ -184,10 +208,18 @@ async function addCurrentNetworkStats() {
 
 setInterval(
   () => {
-    addCurrentNetworkStats();
+    aggregateNetworkStats();
   },
   // @ts-ignore
   process.env.STATS_INTERVAL || 5 * 60 * 1000,
+);
+
+setInterval(
+  () => {
+    addCurrentNetworkStats();
+  },
+  // @ts-ignore
+  process.env.STATS_SCRAPE_INTERVAL || 15 * 1000,
 );
 
 app.listen(8080, () => {
@@ -197,5 +229,17 @@ app.listen(8080, () => {
 function fetchVariableValue(name: string, segId: number) {
   return fetch(`http://localhost:8888/variable?name=${name}&seg_id=${segId}`)
     .then(response => response.json())
-    .then(data => data?.value?.value);
+    .then(data => data?.value);
+}
+
+function fetchVariablesValues(payload: { name: string; segId: number }[]) {
+  return fetch(`http://localhost:8888/variables`, {
+    body: JSON.stringify({ variables: payload }),
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then(response => response.json())
+    .then(data => data);
 }

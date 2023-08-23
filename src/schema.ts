@@ -42,3 +42,16 @@ export const networkStatsTable = sqliteTable("network_stats", {
 
   ownerSignature: text("ownerSignature"),
 });
+
+export const networkStatsAggregatedTable = sqliteTable("network_stats_aggregated", {
+  // only for simplified storage
+  id: integer("id").primaryKey({ autoIncrement: true }),
+
+  networkId: integer("networkId"),
+  segId: integer("segId"),
+  timestamp_utc: integer("timestamp_utc", { mode: "timestamp" }),
+  watt: real("watt"),
+  brightness: real("brightness"),
+
+  ownerSignature: text("ownerSignature"),
+});
