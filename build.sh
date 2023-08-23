@@ -10,4 +10,6 @@ cp -r drizzle build/
 rsync -av --exclude='*.ts' --exclude='*.txt' --exclude='*.tsx' ./src/ ./build/
 cp .env build/.env
 
+echo "Compiling Typescript to Javascript..."
+
 npx tsc

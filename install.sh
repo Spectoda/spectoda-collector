@@ -1,27 +1,35 @@
 #!/bin/bash
 
-# check if running under root
+# Check if the -y flag is passed as an argument
+if [[ "$1" == "-y" ]]; then
+  AUTO_YES=true
+fi
+
+# Check if running under root
 if [ "$EUID" -ne 0 ]
   then echo "Please run as root"
   exit
 fi
 
-# ask user if he wants to update repo
-read -p "Do you want to update the repo? (y/n) " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]
-then
-    git pull
+# Function to handle prompts
+prompt() {
+  if [[ ! $AUTO_YES ]]; then
+    read -p "$1 (y/n) " -n 1 -r
+    echo
+  fi
+  [[ $AUTO_YES || $REPLY =~ ^[Yy]$ ]]
+}
+
+# Ask user if they want to update the repo
+if prompt "Do you want to update the repo?"; then
+  git pull
 fi
 
-# ask user if he wants to build the project first
-read -p "Do you want to build the project first? (y/n) " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]
-then
-    sleep 1
-    su gateway -c 'npm i'
-    su gateway -c './build.sh'
+# Ask user if they want to build the project first
+if prompt "Do you want to build the project first?"; then
+  sleep 1
+  su gateway -c 'npm i'
+  su gateway -c './build.sh'
 fi
 
 echo "Installing systemd service and enabling it..."
@@ -50,4 +58,3 @@ systemctl daemon-reload
 
 # Enable and start the service
 systemctl enable --now spectoda-collector.service
-
