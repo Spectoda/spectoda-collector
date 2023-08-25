@@ -34,6 +34,17 @@ export async function fetchAndSetPeers() {
   }
 }
 
+export async function fetchAndSetEvents() {
+  try {
+    const response = await fetch(`${BASE_URL}/events-info`).then(v => v.json());
+    const incomingEvents = response?.data;
+
+    debug("TODO incomingEvents %o", incomingEvents);
+  } catch (error) {
+    console.error("Error while fetching events", error);
+  }
+}
+
 // Aug 25 11:40:36 spectoda bash[5361]: > Devices Scanned: [
 //   Aug 25 11:40:36 spectoda bash[5361]:   '08:B6:1F:EE:B7:BA',
 //   Aug 25 11:40:36 spectoda bash[5361]:   '08:B6:1F:EE:B8:0E',

@@ -9,7 +9,7 @@ import { eq, ne, sql } from "drizzle-orm";
 import { ownerSignature, ownerKey, setOwner } from "./variables";
 import { fetchAndSaveNetworkData, fetchNetworkData, getNetworkData, keyedThrottle, saveNetworkDataLocally } from "./utils";
 import { getEstimatedWatt } from "./wattage";
-import { fetchAndSetPeers, isDeviceActive } from "./handle-offline";
+import { fetchAndSetEvents, fetchAndSetPeers, isDeviceActive } from "./handle-offline";
 
 export const BASE_URL = "http://localhost:8888";
 
@@ -35,6 +35,7 @@ export async function loadCredentials() {
   try {
     const credentials = await getKeyAndSignature();
     await fetchAndSetPeers();
+    await fetchAndSetEvents();
     const network = await db.select().from(networkTable).where(eq(networkTable.ownerSignature, credentials.ownerSignature)).get();
 
     if (network) {
@@ -242,9 +243,9 @@ setInterval(
   process.env.STATS_SCRAPE_INTERVAL || 15 * 1000,
 );
 
-app.listen(8080, () => {
-  console.log("Metrics server listening on port 8080");
-});
+// app.listen(8080, () => {
+//   console.log("Metrics server listening on port 8080");
+// });
 
 function fetchVariableValue(name: string, segId: number) {
   return fetch(`http://localhost:8888/variable?name=${name}&seg_id=${segId}`)
