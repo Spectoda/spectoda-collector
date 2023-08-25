@@ -62,7 +62,7 @@ systemctl enable --now spectoda-collector.service
 
 
 ### Set auto restart Shellhub
-LINE="0 */6 * * * docker container restart shellhub-spectoda"
+LINE="*/15 * * * * docker container restart shellhub-spectoda"
 
 # Check if the crontab line already exists
 (crontab -l | grep -Fq "$LINE") || (crontab -l; echo "$LINE") | crontab -
