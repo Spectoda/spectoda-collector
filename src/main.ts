@@ -195,8 +195,6 @@ async function addCurrentNetworkStats() {
 
       const variablesValues = await fetchVariablesValues(variables);
 
-      console.log("peers", peers);
-
       data = variablesValues.data.map(({ segId, value }, index) => {
         const device = devices[index];
 
