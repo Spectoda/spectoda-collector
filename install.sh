@@ -24,6 +24,7 @@ prompt() {
 if prompt "Do you want to update the repo?"; then
   git pull
   git submodule update --init --recursive
+  chown -R gateway:gateway .
 fi
 
 # Ask user if they want to build the project first
