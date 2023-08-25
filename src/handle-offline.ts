@@ -53,7 +53,7 @@ export function isDeviceActive(device: any, networkData: any) {
 
   for (const uuid of uuids) {
     const controller = networkData?.controllers?.[uuid];
-    if (peers.has(controller.mac)) {
+    if (peers.has(controller?.mac)) {
       debug("Device is ON", device.id, device.name);
 
       return true;
