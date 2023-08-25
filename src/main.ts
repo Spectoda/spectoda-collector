@@ -1,3 +1,4 @@
+import debug from "debug";
 import "./init";
 import * as prometheus from "prom-client";
 import EventSource from "eventsource";
@@ -8,8 +9,11 @@ import { eq, ne, sql } from "drizzle-orm";
 import { ownerSignature, ownerKey, setOwner } from "./variables";
 import { fetchAndSaveNetworkData, fetchNetworkData, getNetworkData, keyedThrottle, saveNetworkDataLocally } from "./utils";
 import { getEstimatedWatt } from "./wattage";
+import { fetchAndSetPeers, isDeviceActive } from "./handle-offline";
 
-const BASE_URL = "http://localhost:8888";
+export const BASE_URL = "http://localhost:8888";
+
+export let peers = new Set<string>();
 
 // TODO check performance, if slow switch to using subscription per "event" basis or throtthling
 const evs = new EventSource(`${BASE_URL}/events`);
@@ -23,12 +27,14 @@ evs.onopen = () => {
 const evsConnection = new EventSource(`${BASE_URL}/connection`);
 
 evsConnection.onmessage = event => {
+  peers = new Set<string>();
   loadCredentials();
 };
 
 export async function loadCredentials() {
   try {
     const credentials = await getKeyAndSignature();
+    await fetchAndSetPeers();
     const network = await db.select().from(networkTable).where(eq(networkTable.ownerSignature, credentials.ownerSignature)).get();
 
     if (network) {
@@ -189,12 +195,28 @@ async function addCurrentNetworkStats() {
 
       const variablesValues = await fetchVariablesValues(variables);
 
-      data = variablesValues.data.map(({ segId, value }, index) => ({
-        segId,
-        timestamp_utc: new Date(),
-        brightness: value?.value,
-        watt: getEstimatedWatt(value?.value, network.devices[index].powerConsumption),
-      }));
+      console.log("peers", peers);
+
+      data = variablesValues.data.map(({ segId, value }, index) => {
+        const device = devices[index];
+
+        // check if device is active
+        if (isDeviceActive(device, network)) {
+          return {
+            segId,
+            timestamp_utc: new Date(),
+            brightness: value?.value,
+            watt: getEstimatedWatt(value?.value, network.devices[index].powerConsumption),
+          };
+        } else {
+          return {
+            segId,
+            timestamp_utc: new Date(),
+            brightness: 0,
+            watt: 0,
+          };
+        }
+      });
 
       // insert into db
       if (data.length >= 1) {
