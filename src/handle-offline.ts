@@ -10,13 +10,13 @@ evsPeers.onmessage = (event: any) => {
     const data = JSON.parse(event);
     if (data.type === "peer_connected") {
       peers.add(data.mac);
-      console.log("peer_connect", data, { peers });
+      debug("peer_connect %o", data);
     } else if (data.type === "peer_disconnected") {
       peers.delete(data.mac);
-      console.log("peer_disconnect", data, { peers });
+      debug("peer_disconnect %o", data);
     }
   } catch (error) {
-    console.log("Error while handling peers", error);
+    console.error("Error while handling peers", error);
   }
 };
 
@@ -30,7 +30,7 @@ export async function fetchAndSetPeers() {
     });
     debug({ peers });
   } catch (error) {
-    console.log("Error while fetching peers", error);
+    console.error("Error while fetching peers", error);
   }
 }
 

@@ -7,6 +7,8 @@ import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { inArray } from "drizzle-orm";
 import { ownerKey, ownerSignature } from "./variables";
 
+const debug = require("debug")("events");
+
 require("isomorphic-fetch");
 
 export const BASE_API_URL = "https://cloud.host.spectoda.com"; //"http://localhost:4000"; //
@@ -57,7 +59,7 @@ async function sync() {
 // }
 
 function postDataToCloud(data: any) {
-  console.log("sending DATA", data);
+  debug("sending Events Cloud %o", data);
   return fetch(`${BASE_API_URL}/api/network-events`, {
     method: "post",
     body: JSON.stringify({
@@ -74,7 +76,7 @@ function postDataToCloud(data: any) {
 }
 
 function postStatsToCloud(data: any) {
-  console.log("sending STATS", data);
+  debug("sending stats Cloud", data);
   return fetch(`${BASE_API_URL}/api/stats`, {
     method: "post",
     body: JSON.stringify({

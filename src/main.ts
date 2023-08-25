@@ -21,7 +21,7 @@ const evs = new EventSource(`${BASE_URL}/events`);
 require("isomorphic-fetch");
 
 evs.onopen = () => {
-  console.log("Connected to spectoda");
+  console.log("Connected to spectoda-node");
 };
 
 const evsConnection = new EventSource(`${BASE_URL}/connection`);
@@ -48,19 +48,19 @@ export async function loadCredentials() {
         .where(eq(networkTable.ownerSignature, credentials.ownerSignature))
         .run();
 
-      console.log("Keeping old signature and key");
+      debug("Keeping old signature and key");
     } else {
       await db.insert(networkTable).values({
         network: credentials.network,
         ownerKey: credentials.ownerKey,
         ownerSignature: credentials.ownerSignature,
       });
-      console.log("Signature and key saved", credentials);
+      debug("Network Signature and key saved %O", credentials);
     }
 
     await fetchAndSaveNetworkData(credentials);
   } catch (error) {
-    console.log("Error while loading credentials", error);
+    console.error("Error while loading credentials", error);
   }
 }
 
@@ -68,7 +68,7 @@ loadCredentials();
 
 async function getKeyAndSignature() {
   const { ownerKey, ownerSignature, network } = await fetch(`${BASE_URL}/owner`).then(v => v.json());
-  console.log({ ownerKey, ownerSignature, network });
+  debug("got credentials %O", { ownerKey, ownerSignature, network });
 
   setOwner({
     network,
@@ -82,7 +82,7 @@ async function getKeyAndSignature() {
 evs.onmessage = (event: MessageEvent) => {
   try {
     const data = JSON.parse(event.data);
-    console.log(data);
+    debug("received event %o", data);
 
     // TODO validate received data
 
@@ -99,7 +99,7 @@ evs.onmessage = (event: MessageEvent) => {
     }
 
     // Update the gauge metric with the value based on the id and label
-    eventValue.labels(id.toString(), label).set(value);
+    // eventValue.labels(id.toString(), label).set(value);
 
     keyedThrottle(
       `
@@ -121,7 +121,7 @@ evs.onmessage = (event: MessageEvent) => {
       5000,
     );
   } catch (error) {
-    console.log("Error while processing event", error);
+    console.error("Error while processing event", error);
   }
 };
 
@@ -129,19 +129,19 @@ evs.onmessage = (event: MessageEvent) => {
 const register = new prometheus.Registry();
 
 // Define a Gauge metric to track the values of events by id and label
-const eventValue = new prometheus.Gauge({
-  name: "event_value",
-  help: "Value of events",
-  labelNames: ["id", "label"],
-  registers: [register],
-});
+// const eventValue = new prometheus.Gauge({
+//   name: "event_value",
+//   help: "Value of events",
+//   labelNames: ["id", "label"],
+//   registers: [register],
+// });
 
 // Register the metric with the Prometheus client
-register.registerMetric(eventValue);
+// register.registerMetric(eventValue);
 
 const app = express();
 app.get("/metrics", async (req, res) => {
-  console.log("Metrics called");
+  debug("Metrics called");
   try {
     const metrics = await register.metrics();
     res.set("Content-Type", register.contentType);
