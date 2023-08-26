@@ -25,7 +25,8 @@ async function sync() {
     const eventHistoryIds = eventHistory.map(v => v.id);
     try {
       await postDataToCloud(eventHistory);
-      db.delete(networkEventHistoryTable).where(inArray(networkEventHistoryTable.id, eventHistoryIds)).run();
+      await db.delete(networkEventHistoryTable).where(inArray(networkEventHistoryTable.id, eventHistoryIds)).run();
+      debug("Sent events to cloud and deleted from local db");
     } catch (err) {
       console.error(err);
     }

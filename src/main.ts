@@ -1,4 +1,3 @@
-import debug from "debug";
 import "./init";
 import * as prometheus from "prom-client";
 import EventSource from "eventsource";
@@ -10,6 +9,7 @@ import { ownerSignature, ownerKey, setOwner } from "./variables";
 import { fetchAndSaveNetworkData, fetchNetworkData, getNetworkData, keyedThrottle, saveNetworkDataLocally } from "./utils";
 import { getEstimatedWatt } from "./wattage";
 import { fetchAndSetEvents, fetchAndSetPeers, isDeviceActive } from "./handle-offline";
+const debug = require("debug")("main");
 
 export const BASE_URL = "http://localhost:8888";
 
@@ -201,13 +201,18 @@ async function addCurrentNetworkStats() {
 
         // check if device is active
         if (isDeviceActive(device, network)) {
+          const watt = getEstimatedWatt(value?.value, network.devices[index].powerConsumption);
+          debug("device %o", { value, watt });
+
           return {
             segId,
             timestamp_utc: new Date(),
             brightness: value?.value,
-            watt: getEstimatedWatt(value?.value, network.devices[index].powerConsumption),
+            watt,
           };
         } else {
+          debug("device %o", { value });
+
           return {
             segId,
             timestamp_utc: new Date(),
