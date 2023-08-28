@@ -35,7 +35,8 @@ export async function loadCredentials() {
   try {
     const credentials = await getKeyAndSignature();
     await fetchAndSetPeers();
-    await fetchAndSetEvents();
+    // TODO reenable when ready
+    // await fetchAndSetEvents();
     const network = await db.select().from(networkTable).where(eq(networkTable.ownerSignature, credentials.ownerSignature)).get();
 
     if (network) {

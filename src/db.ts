@@ -37,7 +37,7 @@ async function sync() {
     const statsIds = stats.map(v => v.id);
     try {
       await postStatsToCloud(stats);
-      db.delete(networkStatsAggregatedTable).where(inArray(networkStatsAggregatedTable.id, statsIds)).run();
+      await db.delete(networkStatsAggregatedTable).where(inArray(networkStatsAggregatedTable.id, statsIds)).run();
     } catch (err) {
       console.error(err);
     }
