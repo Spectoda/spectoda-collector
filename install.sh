@@ -24,7 +24,6 @@ prompt() {
 if prompt "Do you want to update the repo?"; then
   git pull
   git submodule update --init --recursive
-  cp ./default.db build/sqlite.db
   chown -R gateway:gateway .
 fi
 
@@ -55,6 +54,17 @@ RestartSec=5s
 [Install]
 WantedBy=default.target
 EOF
+
+if [ -f /etc/systemd/system/spectoda-collector.service ]; then
+  systemctl disable --now spectoda-collector.service
+fi
+
+# do you want to copy the default.db to build/sqlite.db?
+if prompt "Do you want to copy the default.db to build/sqlite.db?"; then
+  sleep 3
+  cp ./default.db build/sqlite.db
+  echo "Copied default.db to build/sqlite.db"
+fi
 
 # Reload systemd daemon to pick up the new service file
 systemctl daemon-reload
