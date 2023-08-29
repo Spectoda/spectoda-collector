@@ -47,7 +47,7 @@ After=network.target
 User=gateway
 Group=gateway
 WorkingDirectory=/home/gateway/spectoda-collector/build/
-ExecStart=/bin/bash -i -c 'node src/main.js'
+ExecStart=/bin/bash -i -c 'DEBUG=* node src/main.js'
 Restart=on-failure
 RestartSec=5s
 
