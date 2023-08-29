@@ -66,6 +66,8 @@ if prompt "Do you want to copy the default.db to build/sqlite.db?"; then
   echo "Copied default.db to build/sqlite.db"
 fi
 
+chown -R gateway:gateway .
+
 # Reload systemd daemon to pick up the new service file
 systemctl daemon-reload
 
