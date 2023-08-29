@@ -196,6 +196,7 @@ async function addCurrentNetworkStats() {
       const variables = devices.map(device => ({ name: "lightlevel_for_analytics", segId: device.id }));
 
       const variablesValues = await fetchVariablesValues(variables);
+      await fetchAndSetPeers();
 
       data = variablesValues.data.map(({ segId, value }, index) => {
         const device = devices[index];

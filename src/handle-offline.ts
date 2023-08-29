@@ -3,32 +3,33 @@ import { BASE_URL, loadCredentials, peers } from "./main";
 import { getNetworkData } from "./utils";
 const debug = require("debug")("peers");
 
-const evsPeers = new EventSource(`${BASE_URL}/peers`);
+// const evsPeers = new EventSource(`${BASE_URL}/peers`);
 
-evsPeers.onmessage = (event: any) => {
-  try {
-    const data = JSON.parse(event);
-    if (data.type === "peer_connected") {
-      peers.add(data.mac);
-      debug("peer_connect %o", data);
-    } else if (data.type === "peer_disconnected") {
-      peers.delete(data.mac);
-      debug("peer_disconnect %o", data);
-    }
-  } catch (error) {
-    console.error("Error while handling peers", error);
-  }
-};
+// evsPeers.onmessage = (event: any) => {
+//   try {
+//     const data = JSON.parse(event);
+//     if (data.type === "peer_connected") {
+//       peers.add(data.mac);
+//       debug("peer_connect %o", data);
+//     } else if (data.type === "peer_disconnected") {
+//       peers.delete(data.mac);
+//       debug("peer_disconnect %o", data);
+//     }
+//   } catch (error) {
+//     console.error("Error while handling peers", error);
+//   }
+// };
 
 export async function fetchAndSetPeers() {
   try {
     const response = await fetch(`${BASE_URL}/peers-info`).then(v => v.json());
     const incomingPeers = response.data;
+    peers.clear();
 
     incomingPeers.forEach((peer: { mac: string }) => {
       peers.add(peer?.mac);
     });
-    debug({ peers });
+    // debug({ peers });
   } catch (error) {
     console.error("Error while fetching peers", error);
   }
