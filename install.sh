@@ -24,6 +24,7 @@ prompt() {
 if prompt "Do you want to update the repo?"; then
   git pull
   git submodule update --init --recursive
+  cp ./default.db build/sqlite.db
   chown -R gateway:gateway .
 fi
 
