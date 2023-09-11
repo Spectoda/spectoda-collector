@@ -46,8 +46,8 @@ After=network.target
 [Service]
 User=gateway
 Group=gateway
-WorkingDirectory=/home/gateway/spectoda-collector/build/
-ExecStart=/bin/bash -i -c 'DEBUG=* node src/main.js'
+WorkingDirectory=/home/gateway/spectoda-collector/
+ExecStart=/bin/bash -i -c 'DEBUG=* npm start'
 Restart=on-failure
 RestartSec=5s
 
