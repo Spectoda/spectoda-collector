@@ -59,12 +59,12 @@ if [ -f /etc/systemd/system/spectoda-collector.service ]; then
   systemctl disable --now spectoda-collector.service
 fi
 
-# do you want to copy the default.db to build/sqlite.db?
-if prompt "Do you want to copy the default.db to build/sqlite.db?"; then
-  sleep 3
-  cp ./default.db build/sqlite.db
-  echo "Copied default.db to build/sqlite.db"
-fi
+# # do you want to copy the default.db to build/sqlite.db?
+# if prompt "Do you want to copy the default.db to build/sqlite.db?"; then
+#   sleep 3
+#   cp ./default.db build/sqlite.db
+#   echo "Copied default.db to build/sqlite.db"
+# fi
 
 chown -R gateway:gateway .
 
@@ -75,8 +75,13 @@ systemctl daemon-reload
 systemctl enable --now spectoda-collector.service
 
 
-### Set auto restart Shellhub
-LINE="*/15 * * * * docker container restart shellhub-spectoda"
+# Set auto restart Shellhub
+LINE_RESTART="*/15 * * * * docker container restart shellhub-spectoda"
+LINE_REBOOT="0 0 * * * /sbin/reboot"
 
-# Check if the crontab line already exists
-(crontab -l | grep -Fq "$LINE") || (crontab -l; echo "$LINE") | crontab -
+
+# Check if the Shellhub restart crontab line already exists
+(crontab -l | grep -Fq "$LINE_RESTART") || (crontab -l; echo "$LINE_RESTART") | crontab -
+
+# Check if the reboot crontab line already exists
+(crontab -l | grep -Fq "$LINE_REBOOT") || (crontab -l; echo "$LINE_REBOOT") | crontab -
