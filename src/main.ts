@@ -6,7 +6,7 @@ import { db } from "./db";
 import { networkEventHistoryTable, networkStatsAggregatedTable, networkStatsTable, networkTable } from "./schema";
 import { eq, ne, sql } from "drizzle-orm";
 import { ownerSignature, ownerKey, setOwner } from "./variables";
-import { fetchAndSaveNetworkData, fetchNetworkData, getNetworkData, keyedThrottle, saveNetworkDataLocally } from "./utils";
+import { fetchAndSaveNetworkData, fetchNetworkData, getNetworkData, keyedThrottle, requestRestartSpectodaNodeService, saveNetworkDataLocally, sendNotificationRequestToCloud } from "./utils";
 import { getEstimatedWatt } from "./wattage";
 import { fetchAndSetEvents, fetchAndSetPeers, isDeviceActive } from "./handle-offline";
 const debug = require("debug")("main");
@@ -198,35 +198,49 @@ async function addCurrentNetworkStats() {
       const variablesValues = await fetchVariablesValues(variables);
       await fetchAndSetPeers();
 
-      data = variablesValues.data.map(({ segId, value }, index) => {
-        const device = devices[index];
+      // TODO remove this temporary hack
+      const invalidData = variablesValues?.data?.any(({ value }, index) => {
+        if (value?.debug === "undefined") {
+          const msg = "undefined value received from spectoda-node";
 
-        // check if device is active
-        if (isDeviceActive(device, network)) {
-          const watt = getEstimatedWatt(value?.value, network.devices[index].powerConsumption);
-          debug("device %o", { value, watt });
+          requestRestartSpectodaNodeService(msg);
+          sendNotificationRequestToCloud(msg);
 
-          return {
-            segId,
-            timestamp_utc: new Date(),
-            brightness: value?.value,
-            watt,
-          };
-        } else {
-          debug("device %o", { value });
-
-          return {
-            segId,
-            timestamp_utc: new Date(),
-            brightness: 0,
-            watt: 0,
-          };
+          return true;
         }
       });
 
-      // insert into db
-      if (data.length >= 1) {
-        db.insert(networkStatsTable).values(data).run();
+      if (!invalidData) {
+        data = variablesValues?.data.map(({ segId, value }, index) => {
+          const device = devices[index];
+
+          // check if device is active
+          if (isDeviceActive(device, network)) {
+            const watt = getEstimatedWatt(value?.value, network.devices[index].powerConsumption);
+            debug("device %o", { value, watt });
+
+            return {
+              segId,
+              timestamp_utc: new Date(),
+              brightness: value?.value,
+              watt,
+            };
+          } else {
+            debug("device %o", { value });
+
+            return {
+              segId,
+              timestamp_utc: new Date(),
+              brightness: 0,
+              watt: 0,
+            };
+          }
+        });
+
+        // insert into db
+        if (data.length >= 1) {
+          db.insert(networkStatsTable).values(data).run();
+        }
       }
     }
   } catch (error) {

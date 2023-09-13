@@ -1,10 +1,28 @@
 import { BASE_API_URL } from "./db";
 import fs from "fs";
 import { RootNetwork } from "./types";
-import { network, ownerKey } from "./variables";
+import { network, ownerKey, ownerSignature } from "./variables";
 import { loadCredentials } from "./main";
 
 const throttleStore = new Map();
+
+// @ts-ignore
+if (!Array.prototype.any) {
+  // @ts-ignore
+  Array.prototype.any = function (callback) {
+    if (typeof callback !== "function") {
+      throw new TypeError("Callback must be a function");
+    }
+
+    for (let i = 0; i < this.length; i++) {
+      if (callback(this[i], i, this)) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+}
 
 export const keyedThrottle = (key, fn, delay) => {
   if (throttleStore.has(key)) {
@@ -80,4 +98,29 @@ export async function fetchAndSaveNetworkData(credentials: any) {
   } catch (e) {
     console.error(e);
   }
+}
+
+export function requestRestartSpectodaNodeService(reason: string) {
+  return fetch(`http://localhost:8888/restart?reason=${reason}`, {
+    method: "GET",
+  });
+}
+
+export function sendNotificationRequestToCloud(msg: string) {
+  return fetch(`${BASE_API_URL}/api/notifications`, {
+    method: "post",
+    body: JSON.stringify({
+      ownerKey: ownerKey,
+      ownerSignature: ownerSignature,
+
+      msg: msg,
+      type: "warn",
+      createdAt: new Date(),
+    }),
+    headers: {
+      "Content-Type": "application/json",
+      "owner-key": ownerKey,
+      "owner-signature": ownerSignature,
+    },
+  });
 }
