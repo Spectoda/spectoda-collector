@@ -26,7 +26,7 @@ export async function fetchAndSetPeers() {
     const incomingPeers = response.data;
     peers.clear();
 
-    incomingPeers.forEach((peer: { mac: string }) => {
+    incomingPeers?.forEach((peer: { mac: string }) => {
       peers.add(peer?.mac);
     });
     // debug({ peers });
