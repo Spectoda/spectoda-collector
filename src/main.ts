@@ -28,11 +28,16 @@ const evsConnection = new EventSource(`${BASE_URL}/connection`);
 
 evsConnection.onmessage = event => {
   peers = new Set<string>();
-  loadCredentials();
+  if (event.data === "connected") {
+    loadCredentials();
+  }
+
+  sendNotificationRequestToCloud(`SpectodaNode ${event.data}`);
 };
 
 export async function loadCredentials() {
   try {
+    console.log("Loading credentials");
     const credentials = await getKeyAndSignature();
     await fetchAndSetPeers();
     // TODO reenable when ready
@@ -66,7 +71,7 @@ export async function loadCredentials() {
   }
 }
 
-loadCredentials();
+// loadCredentials();
 
 async function getKeyAndSignature() {
   const { ownerKey, ownerSignature, network } = await fetch(`${BASE_URL}/owner`).then(v => v.json());

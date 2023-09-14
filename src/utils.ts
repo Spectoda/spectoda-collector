@@ -4,6 +4,8 @@ import { RootNetwork } from "./types";
 import { network, ownerKey, ownerSignature } from "./variables";
 import { loadCredentials } from "./main";
 
+const debug = require("debug")("utils");
+
 const throttleStore = new Map();
 
 // @ts-ignore
@@ -93,7 +95,9 @@ export async function getNetworkData() {
 
 export async function fetchAndSaveNetworkData(credentials: any) {
   try {
+    debug("fetching network data");
     const data = await fetchNetworkData(credentials.network, credentials.ownerKey);
+
     saveNetworkDataLocally(data);
   } catch (e) {
     console.error(e);
