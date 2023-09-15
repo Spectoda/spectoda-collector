@@ -1,7 +1,7 @@
 import { BASE_API_URL } from "./db";
 import fs from "fs";
 import { RootNetwork } from "./types";
-import { network, ownerKey, ownerSignature } from "./variables";
+import { network, networkdata, ownerKey, ownerSignature } from "./variables";
 import { loadCredentials } from "./main";
 
 const debug = require("debug")("utils");
@@ -111,6 +111,12 @@ export function requestRestartSpectodaNodeService(reason: string) {
 }
 
 export function sendNotificationRequestToCloud(msg: string) {
+  const { network, ownerKey, ownerSignature } = networkdata;
+
+  if (!ownerKey || !ownerSignature) {
+    console.error("ownerKey or ownerSignature not set");
+  }
+
   return fetch(`${BASE_API_URL}/api/notifications`, {
     method: "post",
     body: JSON.stringify({

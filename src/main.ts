@@ -26,13 +26,16 @@ evs.onopen = () => {
 
 const evsConnection = new EventSource(`${BASE_URL}/connection`);
 
-evsConnection.onmessage = event => {
+evsConnection.onmessage = async event => {
   peers = new Set<string>();
-  if (event.data === "connected") {
-    loadCredentials();
-  }
 
-  sendNotificationRequestToCloud(`SpectodaNode ${event.data}`);
+  try {
+    if (event.data === "connected") {
+      await loadCredentials();
+    }
+  } finally {
+    sendNotificationRequestToCloud(`SpectodaNode ${event.data}`).catch(console.error);
+  }
 };
 
 export async function loadCredentials() {
