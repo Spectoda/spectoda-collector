@@ -22,6 +22,7 @@ prompt() {
 
 # Ask user if they want to update the repo
 if prompt "Do you want to update the repo?"; then
+  chown -R gateway:gateway .
   git pull
   git submodule update --init --recursive
   chown -R gateway:gateway .
@@ -76,12 +77,27 @@ systemctl enable --now spectoda-collector.service
 
 
 # Set auto restart Shellhub
-LINE_RESTART="*/15 * * * * docker container restart shellhub-spectoda"
-LINE_REBOOT="0 0 * * * /sbin/reboot"
+LINE_RESTART="*/30 * * * * docker container restart shellhub-spectoda"
 
 
 # Check if the Shellhub restart crontab line already exists
 (crontab -l | grep -Fq "$LINE_RESTART") || (crontab -l; echo "$LINE_RESTART") | crontab -
 
-# Check if the reboot crontab line already exists
-(crontab -l | grep -Fq "$LINE_REBOOT") || (crontab -l; echo "$LINE_REBOOT") | crontab -
+# LINE_REBOOT="0 0 * * * /sbin/reboot"
+
+# # Check if the reboot crontab line already exists
+# (crontab -l | grep -Fq "$LINE_REBOOT") || (crontab -l; echo "$LINE_REBOOT") | crontab -
+
+LINE_REBOOT="0 0 * * 5 /sbin/reboot"
+
+# Remove the existing midnight reboot line if it exists
+crontab -l | grep -v '/sbin/reboot' > /tmp/cron.tmp
+
+# Add the new line to the temporary file
+echo "$LINE_REBOOT" >> /tmp/cron.tmp
+
+# Update crontab from the temporary file
+crontab /tmp/cron.tmp
+
+# Remove the temporary file
+rm /tmp/cron.tmp
