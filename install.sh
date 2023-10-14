@@ -75,6 +75,8 @@ systemctl daemon-reload
 # Enable and start the service
 systemctl enable --now spectoda-collector.service
 
+# remove existing LINE_RESTART
+crontab -l | grep -v 'docker container restart shellhub-spectoda' > /tmp/cron.tmp
 
 # Set auto restart Shellhub
 LINE_RESTART="*/30 * * * * docker container restart shellhub-spectoda"
