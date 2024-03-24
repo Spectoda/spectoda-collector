@@ -74,7 +74,7 @@ export async function loadCredentials() {
   }
 }
 
-// loadCredentials();
+loadCredentials();
 
 async function getKeyAndSignature() {
   const { ownerKey, ownerSignature, network } = await fetch(`${BASE_URL}/owner`).then(v => v.json());
@@ -201,7 +201,7 @@ async function addCurrentNetworkStats() {
     if (network) {
       const devices = network.devices;
       // use fetchVariables and calculate powerconsumtion into data array
-      const variables = devices.map(device => ({ name: "lightlevel_for_analytics", segId: device.id }));
+      const variables = devices.map(device => ({ name: "lightlevel", segId: device.id }));
 
       const variablesValues = await fetchVariablesValues(variables);
       await fetchAndSetPeers();
