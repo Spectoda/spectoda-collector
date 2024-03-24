@@ -20,6 +20,11 @@ export const db = drizzle(sqlite, { logger: false });
 
 // this will automatically run needed migrations on the database
 async function sync() {
+  syncEventHistory();
+  syncStats();
+}
+
+async function syncEventHistory() {
   const eventHistory = await db.select().from(networkEventHistoryTable).limit(100).all();
   if (eventHistory.length > 0) {
     const eventHistoryIds = eventHistory.map(v => v.id);
@@ -31,7 +36,9 @@ async function sync() {
       console.error(err);
     }
   }
+}
 
+async function syncStats() {
   const stats = await db.select().from(networkStatsAggregatedTable).limit(100).all();
   if (stats.length > 0) {
     const statsIds = stats.map(v => v.id);
