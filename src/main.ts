@@ -211,7 +211,7 @@ async function addCurrentNetworkStats() {
         if (value?.debug === "undefined") {
           const msg = "undefined value received from spectoda-node";
 
-          requestRestartSpectodaNodeService(msg);
+          // requestRestartSpectodaNodeService(msg);
           sendNotificationRequestToCloud(msg);
 
           return true;
