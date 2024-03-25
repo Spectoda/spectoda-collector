@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "DEBUG=* tsx .",
-    "generate": "npx drizzle-kit generate:sqlite"
+    "generate": "npx drizzle-kit generate:sqlite",
+    "clear": "tsx src/cleardb.ts"
   },
   "keywords": [],
   "author": "",
