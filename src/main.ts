@@ -208,14 +208,12 @@ async function addCurrentNetworkStats() {
 
       // TODO remove this temporary hack
       const invalidData = variablesValues?.data?.any(({ value }, index) => {
-        if (value?.debug === "undefined") {
-          const msg = "undefined value received from spectoda-node";
-
-          // requestRestartSpectodaNodeService(msg);
-          sendNotificationRequestToCloud(msg);
-
-          return true;
-        }
+        // if (value?.debug === "undefined") {
+        //   const msg = "undefined value received from spectoda-node";
+        //   // requestRestartSpectodaNodeService(msg);
+        //   sendNotificationRequestToCloud(msg);
+        //   return true;
+        // }
       });
 
       if (!invalidData) {
