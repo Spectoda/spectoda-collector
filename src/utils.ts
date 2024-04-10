@@ -85,7 +85,7 @@ export async function getNetworkData() {
   if (fs.existsSync("./networkdata.json")) {
     let data = JSON.parse(fs.readFileSync("./networkdata.json").toString()) as RootNetwork;
 
-    data.devices = data.devices.filter(v => v); // data?.devices ? new Map(Object.entries(data.devices.filter(v => v))) : new Map();
+    data.devices = data?.devices?.filter(v => v); // data?.devices ? new Map(Object.entries(data.devices.filter(v => v))) : new Map();
     // data.controllers = data?.controllers ? new Map(Object.entries(data.controllers)) : new Map();
     // data.groups = data?.groups ? new Map(Object.entries(data.groups) ?? undefined) : new Map();
 
