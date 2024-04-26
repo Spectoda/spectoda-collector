@@ -98,6 +98,13 @@ export async function fetchAndSaveNetworkData(credentials: any) {
     debug("fetching network data");
     const data = await fetchNetworkData(credentials.network, credentials.ownerKey);
 
+    if (data?.devices) {
+      // if not array, convert to array, firebase prevention hack for 1 device
+      if (!Array.isArray(data.devices)) {
+        data.devices = data.devices;
+      }
+    }
+
     saveNetworkDataLocally(data);
   } catch (e) {
     console.error(e);
