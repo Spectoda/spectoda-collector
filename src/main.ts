@@ -201,6 +201,7 @@ async function addCurrentNetworkStats() {
     if (network) {
       const devices = network.devices;
       // use fetchVariables and calculate powerconsumtion into data array
+
       const variables = devices.map(device => ({ name: "lightlevel", segId: device.id }));
 
       const variablesValues = await fetchVariablesValues(variables);

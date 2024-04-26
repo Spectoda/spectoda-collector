@@ -96,13 +96,11 @@ export async function getNetworkData() {
 export async function fetchAndSaveNetworkData(credentials: any) {
   try {
     debug("fetching network data");
-    const data = await fetchNetworkData(credentials.network, credentials.ownerKey);
+    let data = await fetchNetworkData(credentials.network, credentials.ownerKey);
 
-    if (data?.devices) {
-      // if not array, convert to array, firebase prevention hack for 1 device
-      if (!Array.isArray(data.devices)) {
-        data.devices = data.devices;
-      }
+    // if not array, convert to array, firebase prevention hack for 1 device
+    if (!Array.isArray(data?.devices)) {
+      data.devices = Object.values(data.devices);
     }
 
     saveNetworkDataLocally(data);
