@@ -7,6 +7,12 @@ export function getEstimatedWatt(brightness: number, data: BrightnessWattPair[])
   if (!data || data.length === 0) {
     return undefined;
   }
+
+  // Add default value if brightness: 0, watt: 0 doesn't exist
+  if (!data.some(pair => pair.brightness === 0)) {
+    data.push({ brightness: 0, watt: 0 });
+  }
+
   // Ensure data is sorted by brightness in ascending order
   data.sort((a, b) => a.brightness - b.brightness);
 
