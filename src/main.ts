@@ -179,7 +179,14 @@ async function aggregateNetworkStats() {
     if (aggregatedNetworkStats.length >= 1) {
       await db
         .insert(networkStatsAggregatedTable)
-        .values(aggregatedNetworkStats.map(v => ({ ...v, timestamp_utc: new Date(v.timestamp_utc * 1000) })))
+        .values(
+          aggregatedNetworkStats.map(v => ({
+            brightness: v.brightness,
+            segId: v.segId,
+            timestamp_utc: new Date(v.timestamp_utc * 1000),
+            watt: v.watt,
+          })),
+        )
         .run();
       await db.delete(networkStatsTable).run();
     }
@@ -251,7 +258,7 @@ async function addCurrentNetworkStats() {
       }
     }
   } catch (error) {
-    console.error("Error while adding current network stats", error);
+    console.trace("Error while adding current network stats", error);
   }
 }
 
@@ -260,7 +267,7 @@ setInterval(
     aggregateNetworkStats();
   },
   // @ts-ignore
-  process.env.STATS_INTERVAL || 5 * 60 * 1000,
+  process.env.STATS_INTERVAL || 100000,
 );
 
 setInterval(

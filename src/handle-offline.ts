@@ -59,7 +59,8 @@ export function isDeviceActive(device: any, networkData: any) {
   const uuids = device.controllerUuids;
 
   if (!uuids) {
-    debug("Device not configured", device.id, device.name);
+    // TODO make some smart warning in studio
+    // debug("Device controller not configured", device.id, device.name);
     return true;
   }
 
